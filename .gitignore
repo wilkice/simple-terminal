@@ -1,0 +1,3 @@
+.dependencies/
+.build/
+.DS_Store

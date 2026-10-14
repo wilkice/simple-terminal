@@ -1,6 +1,6 @@
 # Minimal libghostty integration demo
 
-Status: agreed — ready for implementation when requested
+Status: implementation requested — blocked at the dependency build gate
 
 ## Goal
 
@@ -62,7 +62,7 @@ The demo is complete when:
 4. Closing the window or entering `exit` ends the app and releases the session.
 5. The short integration explanation matches the code and build/run procedure.
 
-Record actual outcomes for these checks. None has been executed yet. This is a manual smoke check, not a compatibility certification or a request for a broad test suite.
+Record actual outcomes for these checks. The first dependency build was attempted on 2026-10-14 and failed because the selected Command Line Tools lack Metal tools; full Xcode is also required for XCFramework packaging. See [build-gate outcomes](../../docs/build-gate.md). No host or runtime acceptance check has been executed. This is a manual smoke check, not a compatibility certification or a request for a broad test suite.
 
 ## Excluded implementation
 
@@ -85,4 +85,4 @@ Earlier tracker questions and research recommendations are historical where they
 - [Implementation handoff](issues/06-implementation-handoff.md): scoped to the learning handoff above.
 - [OSC 7501](issues/02-osc7501-integration.md) and [status presentation](issues/04-status-presentation.md): outside scope.
 
-This workspace has documentation only and no Git repository or remote. This interview edits the specification; it does not authorize starting app implementation. The user confirmed shared understanding of this narrowed contract on 2026-10-14. No product-design questions remain open; technical feasibility remains unverified.
+The user confirmed shared understanding of this narrowed contract on 2026-10-14 and subsequently requested implementation. The workspace now has a local Git repository, dependency preparation script, and recorded build failure; it has no remote or host app. No product-design questions remain open; technical feasibility remains unverified until the dependency build/link/shell gate passes.

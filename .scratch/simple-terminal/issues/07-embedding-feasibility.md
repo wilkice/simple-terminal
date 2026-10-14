@@ -2,7 +2,7 @@
 
 Labels: wayfinder:task
 Type: task
-Status: open
+Status: blocked — full Xcode and Metal tools unavailable
 Assignee: none
 Parent: ../map.md
 Blocked by: 05
@@ -10,3 +10,12 @@ Blocked by: 05
 ## Question
 
 Can the candidate pinned full library build and link on Apple Silicon and run one interactive zsh surface in a minimal Swift/AppKit host? Record the exact passing toolchain, commands, linking and required resource setup. Verify only the minimum checks in [the authoritative spec](../map.md): command input/output, resizing, and app/session cleanup. Do not add IME, clipboard, scrollback controls, production features, or OSC 7501. If substantial patches or new subsystems are required, record the blocker and revisit the route rather than expanding scope.
+
+## Attempt on 2026-10-14
+
+The pinned dependency build ran with Zig 0.16.0 on arm64 macOS 27.0.1. It failed
+at Metal shader compilation because the selected Command Line Tools do not
+provide `metal`/`metallib`. XCFramework packaging also requires full Xcode.
+No host implementation or runtime checks followed this failed gate. See
+[the evidence and retry procedure](../../../docs/build-gate.md) and
+[dependency preparation](../../../scripts/prepare-dependency.sh).
