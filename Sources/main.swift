@@ -108,11 +108,12 @@ final class TerminalApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 }
 
-enum StartupError: Error { case resources, initialize, config, app, surface }
+enum StartupError: Error { case resources, initialize, config, app, surface, command }
 
 // AppKit view is the adapter; libghostty attaches its own Metal renderer to it.
 final class TerminalView: NSView {
     private(set) var surface: ghostty_surface_t?
+    private var command: UnsafeMutablePointer<CChar>?
     override var acceptsFirstResponder: Bool { true }
 
     func createSurface(app: ghostty_app_t) throws {
@@ -122,14 +123,17 @@ final class TerminalView: NSView {
         options.platform.macos.nsview = Unmanaged.passUnretained(self).toOpaque()
         options.userdata = Unmanaged.passUnretained(self).toOpaque()
         options.scale_factor = Double(window?.backingScaleFactor ?? 1)
-        options.wait_after_command = false
+        // This pinned API treats command as a shell string and forces its
+        // wait-after-command mode. SHOW_CHILD_EXITED above terminates immediately.
         // Explicit interactive login zsh preserves normal shell startup files.
+        guard let command = strdup("exec /bin/zsh -il") else { throw StartupError.command }
+        self.command = command
+        options.command = UnsafePointer(command)
+        // The pinned API can retain the command pointer for its I/O thread.
+        // Keep it alive until surface teardown; the working directory is copied.
         surface = NSHomeDirectory().withCString { directory in
-            "direct:/bin/zsh -il".withCString { command in
-                options.working_directory = directory
-                options.command = command
-                return ghostty_surface_new(app, &options)
-            }
+            options.working_directory = directory
+            return ghostty_surface_new(app, &options)
         }
         guard surface != nil else { throw StartupError.surface }
         updateGeometry()
@@ -138,6 +142,8 @@ final class TerminalView: NSView {
     func closeSurface() {
         if let surface { ghostty_surface_free(surface) }
         surface = nil
+        free(command)
+        command = nil
     }
 
     override func layout() {
