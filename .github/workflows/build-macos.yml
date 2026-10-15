@@ -1,0 +1,46 @@
+name: Build macOS demo
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record toolchain
+        run: |
+          mkdir -p .build
+          {
+            uname -m
+            sw_vers
+            xcodebuild -version
+            xcrun --show-sdk-version
+            swift --version
+          } 2>&1 | tee .build/toolchain.txt
+      - name: Build pinned full libghostty
+        run: |
+          if ! xcrun -sdk macosx metal --version; then
+            xcodebuild -downloadComponent MetalToolchain
+          fi
+          bash scripts/prepare-dependency.sh
+      - name: Record dependency versions
+        run: |
+          echo 'Ghostty 291fd050b9e9c293c8adb6a140742649b7e42d3a' >> .build/toolchain.txt
+          .dependencies/zig-aarch64-macos-0.16.0/zig version >> .build/toolchain.txt
+      - name: Build and sign app
+        run: bash scripts/build-app.sh
+      - name: Package local app
+        run: ditto -c -k --sequesterRsrc --keepParent '.build/Simple Terminal.app' .build/SimpleTerminal-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SimpleTerminal-arm64
+          path: |
+            .build/SimpleTerminal-arm64.zip
+            .build/toolchain.txt
+          if-no-files-found: error

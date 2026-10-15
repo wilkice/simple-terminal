@@ -44,7 +44,7 @@ ZIG="$DEPS/zig-aarch64-macos-$ZIG_VERSION/zig"
 [[ $("$ZIG" version) == "$ZIG_VERSION" ]]
 export ZIG_GLOBAL_CACHE_DIR="$DEPS/zig-cache"
 cd "$DEPS/ghostty-$GHOSTTY_REV"
-"$ZIG" build -Doptimize=ReleaseFast -Dapp-runtime=none \
+"$ZIG" build -j2 -Doptimize=ReleaseFast -Dapp-runtime=none \
     -Demit-xcframework=true -Demit-macos-app=false -Dxcframework-target=native
 
 echo "Full libghostty: $PWD/macos/GhosttyKit.xcframework"

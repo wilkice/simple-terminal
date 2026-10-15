@@ -1,6 +1,6 @@
 # Minimal libghostty integration demo
 
-Status: implementation requested — blocked at the dependency build gate
+Status: host and GitHub Actions build implemented — CI and runtime checks pending
 
 ## Goal
 
@@ -48,6 +48,13 @@ Provide documented commands to prepare the dependency, build a local `.app`, and
 
 First verify the dependency can build and link and a single surface can run zsh. Continue only with the integration glue needed for the minimum behavior. If the candidate cannot support this without substantial patches or additional subsystems, record the blocker and revisit the route rather than expanding scope.
 
+Implementation route update, 2026-10-16: the user will not install Xcode locally
+and explicitly requested writing the host now and building the app with GitHub
+Actions. This supersedes the sequencing gate above: source implementation may
+proceed before a successful dependency build. Use CI for the Apple Silicon build
+and downloadable personal `.app` artifact; record CI/runtime checks as pending
+until actually executed. No additional terminal features are authorized.
+
 ## Learning handoff
 
 Provide a short explanation that follows the actual integration code: build/link, initialization, callbacks and tick dispatch, surface creation, input/resize forwarding, and cleanup. Identify which responsibilities belong to the host and which belong to libghostty. Document only what the demo uses.
@@ -85,4 +92,4 @@ Earlier tracker questions and research recommendations are historical where they
 - [Implementation handoff](issues/06-implementation-handoff.md): scoped to the learning handoff above.
 - [OSC 7501](issues/02-osc7501-integration.md) and [status presentation](issues/04-status-presentation.md): outside scope.
 
-The user confirmed shared understanding of this narrowed contract on 2026-10-14 and subsequently requested implementation. The workspace now has a local Git repository, dependency preparation script, and recorded build failure; it has no remote or host app. No product-design questions remain open; technical feasibility remains unverified until the dependency build/link/shell gate passes.
+The user confirmed this narrowed contract on 2026-10-14 and subsequently requested implementation. On 2026-10-16 they authorized proceeding with the host and a GitHub Actions build despite the local toolchain blocker. The workspace has a local Git repository, minimal host, dependency/build scripts, and CI workflow, with no remote configured. Build/link/runtime feasibility remains unverified until CI and manual smoke checks pass.

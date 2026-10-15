@@ -2,6 +2,12 @@
 
 Date: 2026-10-14 (Asia/Shanghai). Status: blocked, not a verified integration.
 
+Update on 2026-10-16: the user authorized writing the minimal Swift host and
+moving the full build to GitHub Actions without installing local Xcode. The host
+now passes local typechecking against the pinned header; CI/link/runtime checks
+remain pending. The observations below describe the original attempt, before the
+host existed. See [current build/run instructions](../README.md).
+
 ## Observed environment
 
 | Item | Observed value |

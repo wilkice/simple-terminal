@@ -1,47 +1,75 @@
 # Simple Terminal
 
-A disposable Swift/AppKit learning demo for full embedded libghostty, scoped by
-[the specification](.scratch/simple-terminal/map.md).
+A minimal Apple Silicon Swift/AppKit host for full embedded libghostty: one
+window, one interactive login `/bin/zsh` in your home directory, basic keyboard
+input, resize/focus forwarding, and cleanup on window close or shell exit.
+The [specification](.scratch/simple-terminal/map.md) defines the narrow scope.
 
-**Blocked at the dependency build gate. No host app has been implemented.** The
-first build attempt on 2026-10-14 failed because the selected developer tools lack
-the Metal compiler. The candidate XCFramework also requires full Xcode. See
-[the recorded attempt](docs/build-gate.md) for evidence and acceptance status.
+## Build on GitHub Actions
 
-## Prepare the dependency
+Push this repository to GitHub. The **Build macOS demo** workflow runs on pushes,
+pull requests, or manually from Actions. It uses the `macos-15` arm64 runner,
+checks for Metal tools (downloads the Xcode component if needed), builds the pinned
+full libghostty XCFramework, compiles the host, and ad hoc signs the `.app`.
+No Apple developer account or signing secrets are required.
 
-Install full Xcode with Metal tools, then run from this directory, adjusting the
-Xcode path if needed:
+Download the **SimpleTerminal-arm64** artifact from the completed workflow run.
+It contains `SimpleTerminal-arm64.zip` and `toolchain.txt`, which records the
+runner's exact macOS, Xcode, SDK, Swift, Zig, and Ghostty versions. Extract the
+inner ZIP on your Apple Silicon Mac and launch:
 
 ```sh
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer bash scripts/prepare-dependency.sh
+ditto -x -k SimpleTerminal-arm64.zip ./demo
+open './demo/Simple Terminal.app'
 ```
 
-This downloads and verifies Ghostty commit
-`291fd050b9e9c293c8adb6a140742649b7e42d3a` and Zig `0.16.0` into the ignored
-`.dependencies/` directory. The script checks Xcode and Metal availability before
-downloading. It builds native arm64 **full libghostty**, without changing upstream
-sources. Archive checksums are pinned; Zig's checksum matches its published
-download index. The Ghostty checksum was measured from the downloaded commit
-archive. A mismatch stops preparation.
+Your local Mac does not need Xcode to run the artifact. This is an ad hoc signed
+personal demo, not a notarized distribution; macOS may require approval to open
+it in System Settings → Privacy & Security.
 
-Expected outputs, pending a successful build:
+The workflow uses GitHub's documented [arm64 macOS runner](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+Metal component installation follows [Apple's instructions](https://developer.apple.com/documentation/Xcode/downloading-and-installing-additional-xcode-components).
 
-- `.dependencies/ghostty-291fd050b9e9c293c8adb6a140742649b7e42d3a/macos/GhosttyKit.xcframework`
-- The same checkout's `zig-out/share/` runtime resources, including Ghostty shell
-  integration and terminfo. Preserve these for the eventual app bundle; discovery
-  from the custom bundle remains to be verified.
+## Optional local build
 
-## Remaining implementation
+On a Mac with full Xcode and Metal tools:
 
-After the dependency builds, establish linking and resource discovery in a small
-Swift/AppKit host, then verify one libghostty surface running `/bin/zsh` in the
-user's home directory. Libghostty will own the renderer, PTY, terminal processing,
-and shell execution. Host code should supply initialization, required callbacks
-and main-thread wakeup/tick dispatch, native view/surface creation, basic keyboard
-input, focus, pixel dimensions/content scale, and cleanup on window or shell exit.
+```sh
+bash scripts/prepare-dependency.sh
+bash scripts/build-app.sh
+open '.build/Simple Terminal.app'
+```
 
-There are no `.app` build or launch commands yet, no verified link flags or
-deployment target, and no code-level learning handoff. Those depend on passing
-the build/link/shell gate; speculative host code would bypass the spec's gate.
-The acceptance boundary is the spec's manual smoke check, with no broad test suite.
+If Xcode is not the selected developer directory, set `DEVELOPER_DIR` to its
+`Contents/Developer` directory for those commands. Dependency preparation verifies
+the pinned source and Zig archive checksums. Downloads/build caches stay in the
+ignored `.dependencies/` directory; the app and ZIP stay in `.build/`.
+
+With just Command Line Tools and the already downloaded pinned headers, check
+the Swift/C API integration without building Metal or linking:
+
+```sh
+bash scripts/typecheck.sh
+```
+
+## Integration and verification
+
+Follow [the integration walkthrough](docs/integration.md) for the actual host and
+library ownership, callbacks, keyboard/resize forwarding, and teardown.
+
+Local Swift typechecking against the pinned C header, shell syntax checking, and
+Info.plist validation passed on 2026-10-16. Full linking and CI execution have
+**not** been verified from this workspace; it has no GitHub remote. The earlier
+local dependency build failed because Metal/Xcode are absent, as recorded in
+[the build-gate history](docs/build-gate.md). The user authorized writing the host
+and moving the build to CI on 2026-10-16.
+
+After downloading the CI artifact, manually check:
+
+1. Launch it and type `echo hello`; confirm `hello` and a usable prompt.
+2. Resize the window and confirm the terminal follows the new dimensions.
+3. Enter `exit`; confirm the app ends. Relaunch, close the window, and confirm
+   the app and shell end (Activity Monitor can check the child process).
+
+These runtime checks remain pending. The workflow checks compilation/linking,
+resource packaging, and signature validity; it does not prove interactive behavior.
