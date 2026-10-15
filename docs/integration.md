@@ -39,7 +39,7 @@ or IME integration is implemented.
 ## Surface and input
 
 `TerminalView.createSurface` passes the NSView and callback userdata to
-`ghostty_surface_new`, together with the home directory and `exec /bin/zsh -il`.
+`ghostty_surface_new`, together with the home directory and `/bin/zsh -il`.
 The library copies the working directory. The host retains an allocated C command
 string until after surface teardown because the pinned API can keep that pointer
 for execution on its I/O thread.
@@ -47,8 +47,9 @@ for execution on its I/O thread.
 creates no PTY or process itself. The pinned embedded API treats the command as
 a shell string and forces wait-after-command mode. The host handles
 `SHOW_CHILD_EXITED` by scheduling termination, so exiting still closes the app
-immediately rather than waiting for another keypress. `exec` replaces the shell
-command wrapper with zsh.
+immediately rather than waiting for another keypress. On macOS the library
+already prepends `exec -l` in a bash wrapper launched through `/usr/bin/login`;
+the host must not add another `exec`. See [the startup diagnosis](startup-fix.md).
 
 The view forwards physical macOS keycodes, modifiers, unshifted codepoints, and
 printable text. Control characters and function-key private-use characters are

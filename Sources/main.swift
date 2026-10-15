@@ -125,8 +125,9 @@ final class TerminalView: NSView {
         options.scale_factor = Double(window?.backingScaleFactor ?? 1)
         // This pinned API treats command as a shell string and forces its
         // wait-after-command mode. SHOW_CHILD_EXITED above terminates immediately.
-        // Explicit interactive login zsh preserves normal shell startup files.
-        guard let command = strdup("exec /bin/zsh -il") else { throw StartupError.command }
+        // On macOS libghostty prepends "exec -l" itself. Supply only the
+        // shell command; another "exec" would be treated as an executable.
+        guard let command = strdup("/bin/zsh -il") else { throw StartupError.command }
         self.command = command
         options.command = UnsafePointer(command)
         // The pinned API can retain the command pointer for its I/O thread.

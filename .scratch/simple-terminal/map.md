@@ -1,6 +1,6 @@
 # Minimal libghostty integration demo
 
-Status: host and GitHub Actions build implemented — CI and runtime checks pending
+Status: CI build verified; startup fix verified on a temporary artifact copy — fresh CI rebuild pending
 
 ## Goal
 
@@ -69,7 +69,7 @@ The demo is complete when:
 4. Closing the window or entering `exit` ends the app and releases the session.
 5. The short integration explanation matches the code and build/run procedure.
 
-Record actual outcomes for these checks. The first dependency build was attempted on 2026-10-14 and failed because the selected Command Line Tools lack Metal tools; full Xcode is also required for XCFramework packaging. See [build-gate outcomes](../../docs/build-gate.md). No host or runtime acceptance check has been executed. This is a manual smoke check, not a compatibility certification or a request for a broad test suite.
+Record actual outcomes for these checks. The first local dependency build on 2026-10-14 failed because Command Line Tools lack Metal/Xcode. A later CI artifact confirms successful build/link with Xcode 16.4 and SDK 15.5. Its duplicated `exec` command caused immediate shell exit; the correction passed input, resize, shell-exit, and window-close checks on a temporary artifact copy on 2026-10-16. A fresh CI build of the changed source remains pending. See [build-gate history](../../docs/build-gate.md) and [startup diagnosis and checks](../../docs/startup-fix.md). This is a manual smoke check, not a compatibility certification or a request for a broad test suite.
 
 ## Excluded implementation
 
@@ -92,4 +92,4 @@ Earlier tracker questions and research recommendations are historical where they
 - [Implementation handoff](issues/06-implementation-handoff.md): scoped to the learning handoff above.
 - [OSC 7501](issues/02-osc7501-integration.md) and [status presentation](issues/04-status-presentation.md): outside scope.
 
-The user confirmed this narrowed contract on 2026-10-14 and subsequently requested implementation. On 2026-10-16 they authorized proceeding with the host and a GitHub Actions build despite the local toolchain blocker. The workspace has a local Git repository, minimal host, dependency/build scripts, and CI workflow, with no remote configured. Build/link/runtime feasibility remains unverified until CI and manual smoke checks pass.
+The user confirmed this narrowed contract on 2026-10-14 and subsequently requested implementation. On 2026-10-16 they authorized proceeding with the host and a GitHub Actions build despite the local toolchain blocker. The workspace now has a GitHub remote, minimal host, dependency/build scripts, CI workflow, and a startup regression check. See the recorded outcomes above for the remaining fresh-build verification.

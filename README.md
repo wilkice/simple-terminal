@@ -58,11 +58,14 @@ Follow [the integration walkthrough](docs/integration.md) for the actual host an
 library ownership, callbacks, keyboard/resize forwarding, and teardown.
 
 Local Swift typechecking against the pinned C header, shell syntax checking, and
-Info.plist validation passed on 2026-10-16. Full linking and CI execution have
-**not** been verified from this workspace; it has no GitHub remote. The earlier
-local dependency build failed because Metal/Xcode are absent, as recorded in
-[the build-gate history](docs/build-gate.md). The user authorized writing the host
-and moving the build to CI on 2026-10-16.
+Info.plist validation passed on 2026-10-16 before local dependencies were removed.
+The downloaded CI artifact confirms linking with Xcode 16.4 and SDK 15.5, but
+initially exited because the host duplicated libghostty's `exec` wrapper. The
+command correction was verified against a temporary copy of that real artifact:
+shell input/output, resize, and `exit` passed. A fresh CI build of the corrected
+Swift source is pending. See [diagnosis and exact checks](docs/startup-fix.md).
+The earlier local dependency build failed because Metal/Xcode are absent, as
+recorded in [the build-gate history](docs/build-gate.md).
 
 After downloading the CI artifact, manually check:
 
@@ -71,5 +74,10 @@ After downloading the CI artifact, manually check:
 3. Enter `exit`; confirm the app ends. Relaunch, close the window, and confirm
    the app and shell end (Activity Monitor can check the child process).
 
-These runtime checks remain pending. The workflow checks compilation/linking,
-resource packaging, and signature validity; it does not prove interactive behavior.
+Repeat these checks on the freshly rebuilt artifact. The workflow checks
+compilation/linking, resource packaging, and signature validity; it does not prove
+interactive behavior. The automated early-exit regression check is:
+
+```sh
+bash scripts/check-startup.sh './demo/Simple Terminal.app'
+```
